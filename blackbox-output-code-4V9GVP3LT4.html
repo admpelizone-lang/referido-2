@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Referidos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hidden { display: none; }
+        .success-message {
+            background-color: #d1fae5;
+            border: 1px solid #10b981;
+            color: #065f46;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        .error-message {
+            background-color: #fee2e2;
+            border: 1px solid #ef4444;
+            color: #991b1b;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-green-600 mb-2">Sistema de Referidos</h1>
+            <p class="text-gray-600">Consulta tu referido utilizando tu número de teléfono</p>
+            
+            <!-- Admin Access Button -->
+            <button onclick="showAdminAccess()" class="mt-4 bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                🛠️ Acceso Administrador
+            </button>
+        </header>
+
+        <!-- Messages Container -->
+        <div id="message-container" class="mb-6"></div>
+
+        <!-- Main Content - Client Consultation -->
+        <div id="main-content">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Consultar Mi Referido</h2>
+                
+                <form id="client-form" class="space-y-4">
+                    <div>
+                        <label for="consulta-phone" class="block text-sm font-medium text-gray-700 mb-1">Ingresa tu número de teléfono *</label>
+                        <input type="tel" id="consulta-phone" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="Ej: 1234567890"
+                               pattern="[0-9]{10}"
+                               title="Debe ser un número de 10 dígitos">
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        🔍 Consultar Referido
+                    </button>
+                </form>
+
+                <!-- Result Display -->
+                <div id="result-container" class="mt-6 p-4 bg-gray-50 rounded-lg hidden">
+                    <h3 class="text-lg font-medium text-gray-800 mb-2">Resultado de la Consulta</h3>
+                    <div id="result-content"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Access Modal -->
+        <div id="admin-access-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg shadow-xl p-6 mx-4 max-w-md w-full">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Acceso Administrador</h2>
+                <p class="text-gray-600 mb-4">Ingresa la contraseña para acceder al panel de administración</p>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label for="admin-password" class="block text-sm font-medium text-gray-700 mb-1">Contraseña *</label>
+                        <input type="password" id="admin-password" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="Ingresa la contraseña de administrador">
+                    </div>
+                    
+                    <div class="flex space-x-3">
+                        <button onclick="verifyPassword()" class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            Acceder
+                        </button>
+                        <button onclick="hideAdminAccess()" class="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                            Cancelar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Panel -->
+        <div id="admin-panel" class="hidden">
+            <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-gray-800">Panel de Administración</h2>
+                    <button onclick="hideAdminPanel()" class="text-red-600 text-sm hover:text-red-800">
+                        ❌ Cerrar Panel
+                    </button>
+                </div>
+                
+                <form id="admin-form" class="space-y-4">
+                    <div>
+                        <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Número de Teléfono *</label>
+                        <input type="tel" id="phone" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="Ej: 1234567890 (puede repetirse)"
+                               pattern="[0-9]{10}"
+                               title="Debe ser un número de 10 dígitos">
+                        <p class="text-xs text-gray-500 mt-1">Este número puede registrarse varias veces con diferentes referidos</p>
+                    </div>
+                    
+                    <div>
+                        <label for="referido" class="block text-sm font-medium text-gray-700 mb-1">Nombre del Referido *</label>
+                        <input type="text" id="referido" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="Ej: Juan Pérez (debe ser único)">
+                        <p class="text-xs text-gray-500 mt-1">Cada referido debe tener un nombre único</p>
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        ➕ Registrar Referido
+                    </button>
+                </form>
+
+                <!-- Registered Numbers List -->
+                <div class="mt-8">
+                    <h3 class="text-lg font-medium text-gray-800 mb-3">Números y Referidos Registrados</h3>
+                    <div id="numbers-list" class="bg-gray-50 rounded-lg p-4 max-h-60 overflow-y-auto">
+                        <p class="text-gray-500 text-center">No hay números registrados aún</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="text-center mt-12 text-gray-500 text-sm">
+            <p>Sistema de Referidos - Todos los derechos reservados</p>
+        </footer>
+    </div>
+
+    <script>
+        // URL de tu Web App de Google Apps Script
+        const URL_API = "https://script.google.com/macros/s/AKfycbzGjgiv0pto5AIilffMkvkNr-WQVxPgAg2h6irkW6UA7hD6eXKVrNtETWARlxzgORki/exec";
+        const ADMIN_PASSWORD = "An1102818214@";
+
+        // Mostrar modal de acceso admin
+        function showAdminAccess() {
+            document.getElementById('admin-access-modal').classList.remove('hidden');
+            document.getElementById('admin-password').value = '';
+        }
+
+        // Ocultar modal de acceso admin
+        function hideAdminAccess() {
+            document.getElementById('admin-access-modal').classList.add('hidden');
+        }
+
+        // Mostrar panel admin
+        function showAdminPanel() {
+            document.getElementById('admin-panel').classList.remove('hidden');
+        }
+
+        // Ocultar panel admin
+        function hideAdminPanel() {
+            document.getElementById('admin-panel').classList.add('hidden');
+        }
+
+        // Verificar contraseña
+        function verifyPassword() {
+            const password = document.getElementById('admin-password').value;
+            
+            if (password === ADMIN_PASSWORD) {
+                hideAdminAccess();
+                showAdminPanel();
+                showMessage('Acceso concedido al panel de administración', 'success');
+            } else {
+                showMessage('Contraseña incorrecta', 'error');
+                document.getElementById('admin-password').value = '';
+            }
+        }
+
+        // Mostrar mensajes
+        function showMessage(message, type) {
+            const container = document.getElementById('message-container');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type === 'success' ? 'success-message' : 'error-message';
+            messageDiv.textContent = message;
+            
+            container.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 5000);
+        }
+
+        // Formulario admin
+        document.getElementById('admin-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const phone = document.getElementById('phone').value.trim();
+            const referido = document.getElementById('referido').value.trim();
+            
+            if (!/^\d{10}$/.test(phone)) {
+                showMessage('Por favor ingresa un número de teléfono válido de 10 dígitos', 'error');
+                return;
+            }
+            
+            if (referido.length < 2) {
+                showMessage('El nombre del referido debe tener al menos 2 caracteres', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(URL_API, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'registrar',
+                        telefono: phone,
+                        referido: referido,
+                        password: ADMIN_PASSWORD
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    showMessage(data.error, 'error');
+                } else {
+                    showMessage(data.success, 'success');
+                    document.getElementById('admin-form').reset();
+                }
+            } catch (error) {
+                showMessage('Error al conectar con el servidor', 'error');
+            }
+        });
+
+        // Formulario cliente
+        document.getElementById('client-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const phone = document.getElementById('consulta-phone').value.trim();
+            
+            if (!/^\d{10}$/.test(phone)) {
+                showMessage('Por favor ingresa un número de teléfono válido de 10 dígitos', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(URL_API, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'consultar',
+                        telefono: phone
+                    })
+                });
+                
+                const data = await response.json();
+                const resultContainer = document.getElementById('result-container');
+                const resultContent = document.getElementById('result-content');
+                
+                if (data.error) {
+                    resultContent.innerHTML = `
+                        <div class="error-message">
+                            ${data.error}
+                        </div>
+                    `;
+                } else if (data.resultados && data.resultados.length > 0) {
+                    let html = `
+                        <div class="success-message">
+                            <p class="font-semibold">¡Referidos encontrados para el número ${phone}!</p>
+                            <div class="mt-3 space-y-2">
+                    `;
+                    
+                    data.resultados.forEach(resultado => {
+                        html += `
+                            <div class="bg-white border border-green-200 rounded p-3">
+                                <p class="font-medium">Referido: <strong>${resultado.referido}</strong></p>
+                                <p class="text-sm text-gray-600">Número: ${resultado.telefono}</p>
+                            </div>
+                        `;
+                    });
+                    
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                    
+                    resultContent.innerHTML = html;
+                } else {
+                    resultContent.innerHTML = `
+                        <div class="error-message">
+                            <p class="font-semibold">No se encontraron referidos</p>
+                            <p class="mt-1">El número ${phone} no está registrado en el sistema.</p>
+                        </div>
+                    `;
+                }
+                
+                resultContainer.classList.remove('hidden');
+                document.getElementById('client-form').reset();
+                
+            } catch (error) {
+                showMessage('Error al conectar con el servidor', 'error');
+            }
+        });
+    </script>
+</body>
+</html>
