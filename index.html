@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sistema de Referidos</title>
+</head>
+<body>
+    <h1>Sistema de Referidos</h1>
+
+    <section>
+        <h2>Registrar Referido</h2>
+        <input type="text" id="adminPhone" placeholder="Número de Teléfono" />
+        <input type="text" id="referredPhone" placeholder="Número de Referido" />
+        <button onclick="addReferral()">Registrar</button>
+        <p id="registerMessage"></p>
+    </section>
+
+    <section>
+        <h2>Consultar Mi Referido</h2>
+        <input type="text" id="consultPhone" placeholder="Tu número de teléfono" />
+        <button onclick="consultReferral()">Consultar</button>
+        <p id="consultResult"></p>
+    </section>
+
+    <script>
+        // Guardar nuevo referido
+        function addReferral() {
+            const admin = document.getElementById('adminPhone').value.trim();
+            const referred = document.getElementById('referredPhone').value.trim();
+            const message = document.getElementById('registerMessage');
+
+            if(!admin || !referred) {
+                message.textContent = "Debes ingresar ambos números.";
+                return;
+            }
+
+            // Obtener datos del storage o crear lista vacía
+            const data = JSON.parse(localStorage.getItem('referidos')) || {};
+
+            // Si ya existen registros para el admin, agregar el referido
+            if(!data[admin]) {
+                data[admin] = [];
+            }
+            data[admin].push(referred);
+
+            // Guardar en storage
+            localStorage.setItem('referidos', JSON.stringify(data));
+
+            message.textContent = "Referido registrado correctamente.";
+        }
+
+        // Consultar referidos por número de admin
+        function consultReferral() {
+            const consult = document.getElementById('consultPhone').value.trim();
+            const result = document.getElementById('consultResult');
+
+            if(!consult) {
+                result.textContent = "Ingresa un número para consultar.";
+                return;
+            }
+
+            const data = JSON.parse(localStorage.getItem('referidos')) || {};
+
+            if(data[consult]) {
+                result.textContent = "Tus referidos son: " + data[consult].join(", ");
+            } else {
+                result.textContent = "No se encontraron referidos para este número.";
+            }
+        }
+    </script>
+</body>
+</html>
